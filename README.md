@@ -1,6 +1,6 @@
 # 🔧 Pure Financial Document ETL Pipeline
 
-A **data engineering focused** ETL pipeline that extracts and structures financial document data without making analytical assumptions or classifications.
+A **data engineering focused** ETL pipeline that extracts from unstructured financial document data (pdf, spreadsheet, doc) without making analytical assumptions or classifications.
 
 ## 🎯 **Pure ETL Philosophy**
 
