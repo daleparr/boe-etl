@@ -141,20 +141,45 @@ class PureETL:
         return 'UNKNOWN'
     
     def classify_document_type(self, filename, text):
-        """Basic document type classification based on filename/content."""
+        """Enhanced document type classification based on filename and content patterns."""
         filename_lower = filename.lower()
         text_lower = text.lower()
         
-        if 'presentation' in filename_lower:
+        # More specific filename patterns
+        if any(term in filename_lower for term in ['presentation', 'slides', 'deck']):
             return 'earnings_presentation'
-        elif 'supplement' in filename_lower or 'financial' in filename_lower:
+        elif any(term in filename_lower for term in ['supplement', 'financial_supplement', 'fin_supp']):
             return 'financial_supplement'
-        elif 'transcript' in filename_lower or 'call' in filename_lower:
+        elif any(term in filename_lower for term in ['transcript', 'earnings_call', 'call_transcript']):
             return 'earnings_call'
-        elif 'earnings' in text_lower and 'call' in text_lower:
-            return 'earnings_call'
+        elif any(term in filename_lower for term in ['report', 'quarterly_report', 'annual_report']):
+            return 'financial_report'
+        elif any(term in filename_lower for term in ['press_release', 'release', 'announcement']):
+            return 'press_release'
+        elif filename_lower.endswith(('.xlsx', '.xls')):
+            # Excel files are likely financial supplements or data
+            if any(term in text_lower for term in ['balance sheet', 'income statement', 'cash flow']):
+                return 'financial_supplement'
+            else:
+                return 'financial_data'
+        elif filename_lower.endswith('.pdf'):
+            # PDF content analysis - more specific patterns
+            if ('transcript' in text_lower and any(term in text_lower for term in ['operator:', 'moderator:', 'q&a'])):
+                return 'earnings_call'
+            elif any(term in text_lower for term in ['slide', 'presentation', 'agenda']):
+                return 'earnings_presentation'
+            elif any(term in text_lower for term in ['balance sheet', 'income statement', 'financial highlights']):
+                return 'financial_supplement'
+            elif any(term in text_lower for term in ['press release', 'announces', 'reported earnings']):
+                return 'press_release'
+            else:
+                return 'financial_document'
         else:
-            return 'other'
+            # Text files and others
+            if any(term in text_lower for term in ['transcript', 'operator:', 'moderator:', 'q&a session']):
+                return 'earnings_call'
+            else:
+                return 'text_document'
     
     def extract_raw_features(self, df):
         """Extract raw features without analytical assumptions."""
@@ -285,7 +310,7 @@ class PureETL:
         
         return df
     
-    def process_files(self, institution, quarter, uploaded_files, progress_callback=None):
+    def process_files(self, institution, quarter, uploaded_files, progress_callback=None, uploaded_by="Unknown"):
         """Process uploaded files with pure ETL approach."""
         try:
             # Create processing directory
@@ -372,8 +397,9 @@ class PureETL:
             
             output_files = []
             
-            # Pure ETL dataset
-            etl_file = output_dir / f"{institution}_{quarter}_pure_etl_dataset.csv"
+            # Pure ETL dataset with taxonomy naming
+            quarter_clean = quarter.replace(" ", "_")
+            etl_file = output_dir / f"{institution}_{quarter_clean}_PureETL_{uploaded_by}_{timestamp}.csv"
             df.to_csv(etl_file, index=False)
             output_files.append(str(etl_file))
             
@@ -385,11 +411,12 @@ class PureETL:
                 'timestamp': datetime.now().isoformat(),
                 'institution': institution,
                 'quarter': quarter,
+                'uploaded_by': uploaded_by,
                 'files': file_names,
                 'output_files': output_files,
                 'status': 'Success',
                 'record_count': len(df),
-                'approach': 'Pure ETL - No analytical assumptions'
+                'approach': 'Pure ETL - Standardized taxonomy'
             })
             self.save_history()
             
@@ -403,12 +430,13 @@ class PureETL:
                 'timestamp': datetime.now().isoformat(),
                 'institution': institution,
                 'quarter': quarter,
+                'uploaded_by': uploaded_by,
                 'files': file_names if 'file_names' in locals() else [],
                 'output_files': [],
                 'status': 'Failed',
                 'record_count': 0,
                 'error': error_msg,
-                'approach': 'Pure ETL - No analytical assumptions'
+                'approach': 'Pure ETL - Standardized taxonomy'
             })
             self.save_history()
             
@@ -430,6 +458,9 @@ def main():
     st.title("🔧 Pure Financial Document ETL Pipeline")
     st.markdown("**Data Engineering Focus** - Extract and structure data without analytical assumptions")
     
+    # Taxonomy guide link
+    st.info("📋 **New!** Follow our [Taxonomy Guide](TAXONOMY_GUIDE.md) for standardized file naming and organization")
+    
     # Check dependencies
     missing_deps = []
     if not PDF_AVAILABLE:
@@ -445,17 +476,47 @@ def main():
     with st.sidebar:
         st.header("🏛️ Institution Processing")
         
-        # Institution input
-        institution = st.text_input(
+        # Institution selection with standardized names
+        institutions = [
+            "JPMorgan", "BankOfAmerica", "Citigroup", "WellsFargo", "GoldmanSachs",
+            "MorganStanley", "USBancorp", "TrustFinancial", "PNCFinancial", "CapitalOne",
+            "HSBC", "Barclays", "Lloyds", "RoyalBankScotland", "StandardChartered",
+            "Deutsche", "UBS", "CreditSuisse", "BNPParibas", "SocGen",
+            "Other (Custom)"
+        ]
+        
+        institution_choice = st.selectbox(
             "Institution Name",
-            placeholder="e.g., JPMorgan Chase",
-            help="Enter the financial institution name"
+            institutions,
+            help="Select standardized institution name"
         )
         
-        # Quarter selection
-        quarters = ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025", 
-                   "Q1 2024", "Q2 2024", "Q3 2024", "Q4 2024"]
-        quarter = st.selectbox("Quarter", quarters)
+        # Custom institution input if "Other" selected
+        if institution_choice == "Other (Custom)":
+            institution = st.text_input(
+                "Custom Institution",
+                placeholder="e.g., RegionalBank",
+                help="Use CamelCase format (no spaces)"
+            )
+        else:
+            institution = institution_choice
+        
+        # Quarter and Year selection
+        col1, col2 = st.columns(2)
+        with col1:
+            quarter = st.selectbox("Quarter", ["Q1", "Q2", "Q3", "Q4"])
+        with col2:
+            year = st.selectbox("Year", ["2025", "2024", "2026", "2023"])
+        
+        # User identification
+        uploaded_by = st.text_input(
+            "Uploaded By",
+            placeholder="e.g., JohnSmith",
+            help="Your name/ID (CamelCase format)"
+        )
+        
+        # Combine quarter and year for processing
+        quarter_year = f"{quarter} {year}"
         
         # File upload
         st.subheader("📁 Document Upload")
@@ -469,7 +530,7 @@ def main():
         # Process button
         process_button = st.button(
             "🔧 Extract & Structure Data",
-            disabled=not (institution and uploaded_files),
+            disabled=not (institution and uploaded_files and uploaded_by),
             type="primary"
         )
     
@@ -484,9 +545,11 @@ def main():
                 st.error("Please enter an institution name")
             elif not uploaded_files:
                 st.error("Please upload at least one document")
+            elif not uploaded_by:
+                st.error("Please enter your name/ID in 'Uploaded By' field")
             else:
                 # Processing
-                st.info(f"Processing {len(uploaded_files)} documents for {institution} {quarter}...")
+                st.info(f"Processing {len(uploaded_files)} documents for {institution} {quarter_year} by {uploaded_by}...")
                 
                 # Progress tracking
                 progress_bar = st.progress(0)
@@ -498,7 +561,7 @@ def main():
                 
                 # Process files
                 output_files, record_count, status = etl.process_files(
-                    institution, quarter, uploaded_files, update_progress
+                    institution, quarter_year, uploaded_files, update_progress, uploaded_by
                 )
                 
                 if status == "Success":
@@ -536,9 +599,10 @@ def main():
             for record in etl.history[:8]:  # Show last 8
                 status_icon = "✅" if record['status'] == 'Success' else "❌"
                 
-                with st.expander(f"{status_icon} {record['institution']} - {record['quarter']}"):
+                with st.expander(f"{status_icon} {record['institution']} - {record['quarter']} - {record.get('uploaded_by', 'Unknown')}"):
                     st.write(f"**Date:** {record['timestamp'][:19]}")
                     st.write(f"**Status:** {record['status']}")
+                    st.write(f"**Uploaded By:** {record.get('uploaded_by', 'Unknown')}")
                     st.write(f"**Files:** {len(record['files'])}")
                     st.write(f"**Approach:** {record.get('approach', 'Standard')}")
                     
