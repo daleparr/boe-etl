@@ -7,7 +7,6 @@ A **data engineering focused** ETL pipeline that extracts from unstructured fina
 This pipeline follows **separation of concerns** principles:
 
 - **ETL Layer**: Extract → Structure → Export (no analysis)
-- **Analysis Layer**: Topic modeling, classification, feature engineering (separate)
 
 ## 🚀 **Quick Start**
 
