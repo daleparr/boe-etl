@@ -22,7 +22,7 @@ streamlit run pure_etl_frontend.py
 ```
 
 ### **Access Application**
-Open your browser to: `http://localhost:8501`
+Open your browser to: `http://localhost:8502`
 
 ## 📊 **What This ETL Does**
 
