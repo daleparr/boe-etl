@@ -1,193 +1,223 @@
-# 🔧 Pure Financial Document ETL Pipeline
+# BoE ETL Package
 
-A **data engineering focused** ETL pipeline that extracts from unstructured financial document data (pdf, spreadsheet, doc) without making analytical assumptions or classifications.
+A comprehensive ETL pipeline for financial document processing and NLP analysis.
 
-## 🎯 **Pure ETL Philosophy**
+## 🚀 Features
 
-This pipeline follows **separation of concerns** principles:
+- **Multi-format Document Processing**: PDF, Excel, CSV, Text, and JSON files
+- **Financial NLP Analysis**: Automatic extraction of financial terms, figures, and metrics
+- **Speaker Identification**: Automatic role detection (CEO, CFO, Analyst, etc.)
+- **Topic Classification**: 8+ financial topic categories with confidence scores
+- **Data Quality Assurance**: Missing value handling and validation
+- **Standardized Schema**: Consistent output format for NLP workflows
+- **Web Interface**: User-friendly Streamlit frontend
+- **Command Line Tools**: Full CLI support for automation
+- **Professional Taxonomy**: Standardized naming conventions
 
-- **ETL Layer**: Extract → Structure → Export (no analysis)
-- **Analysis Layer**: Topic modeling, classification, feature engineering (separate)
+## 📦 Installation
 
-## 🚀 **Quick Start**
-
-### **Installation**
+### From PyPI (when published)
 ```bash
-pip install streamlit pandas PyPDF2 openpyxl
+pip install boe-etl
 ```
 
-### **Launch Web Interface**
+### From Source
 ```bash
-streamlit run pure_etl_frontend.py
+git clone https://github.com/daleparr/boe-etl.git
+cd boe-etl
+pip install -e .
 ```
 
-### **Access Application**
-Open your browser to: `http://localhost:8501`
+### With Optional Dependencies
+```bash
+# For web frontend
+pip install boe-etl[frontend]
 
-## 📊 **What This ETL Does**
+# For development
+pip install boe-etl[dev]
 
-### **✅ Raw Data Extraction**
-- **PDF Documents**: Text extraction from earnings reports
-- **Excel Files**: Multi-sheet data extraction
-- **Text Files**: Direct text processing
-- **Sentence Segmentation**: Clean, structured sentences
-
-### **✅ Raw Feature Extraction**
-- **`all_financial_terms`**: Financial vocabulary found (no classification)
-- **`financial_figures`**: Numbers and amounts extracted (no interpretation)
-- **`temporal_indicators`**: Time-related language (no actual/projection labels)
-- **`speaker_raw`**: Speaker patterns identified (no role classification)
-
-### **✅ Factual Boolean Flags**
-- **`has_financial_terms`**: Terms present or not
-- **`has_financial_figures`**: Figures present or not
-- **`has_temporal_language`**: Temporal words present or not
-- **`has_speaker_identified`**: Speaker pattern found or not
-
-## 🚫 **What This ETL Does NOT Do**
-
-### **❌ No Analytical Assumptions**
-- No topic classification (Revenue & Growth, Risk Management, etc.)
-- No actual vs projection classification
-- No financial content relevance scoring
-- No speaker role interpretation (CEO, CFO, Analyst)
-
-### **❌ No Machine Learning**
-- No topic modeling
-- No sentiment analysis
-- No content classification
-- No predictive features
-
-## 📈 **Output Schema**
-
-### **Core Fields**
-```csv
-source_file,institution,quarter,sentence_id,speaker_raw,text,source_type
+# All dependencies
+pip install boe-etl[all]
 ```
 
-### **Raw Extraction Fields**
-```csv
-all_financial_terms,financial_figures,financial_figures_text,temporal_indicators
+## 🏃 Quick Start
+
+### Python API
+
+```python
+from boe_etl import ETLPipeline
+
+# Initialize pipeline
+pipeline = ETLPipeline()
+
+# Process a single document
+results = pipeline.process_document(
+    'earnings_call.pdf', 
+    institution='JPMorgan', 
+    quarter='Q1_2025'
+)
+
+# Convert to DataFrame
+df = pipeline.to_dataframe(results)
+print(f"Processed {len(df)} records")
+
+# Save results
+pipeline.save_results(results, 'output.csv', format='csv')
 ```
 
-### **Factual Flags**
-```csv
-has_financial_terms,has_financial_figures,has_temporal_language,has_speaker_identified
+### Command Line Interface
+
+```bash
+# Process a single file
+boe-etl process --file earnings_call.pdf --institution JPMorgan --quarter Q1_2025
+
+# Process a directory
+boe-etl process --directory ./documents --institution Citigroup --quarter Q2_2025
+
+# Launch web frontend
+boe-etl frontend --port 8501
+
+# Validate processed data
+boe-etl validate --file processed_data.csv
 ```
 
-### **Metadata**
-```csv
-word_count,char_count,processing_date,extraction_timestamp
+### Web Frontend
+
+```python
+from boe_etl.frontend import launch_frontend
+
+# Launch on default port (8501)
+launch_frontend()
+
+# Launch on custom port
+launch_frontend(port=8080, host='0.0.0.0')
 ```
 
-## 🔄 **Example Processing**
+## 📊 Output Schema
 
-### **Input Document**
-```
-"We reported revenue of $2.5 billion this quarter, up 15% from last year."
-```
+The ETL pipeline produces standardized records with 25+ fields:
 
-### **Pure ETL Output**
-```csv
-all_financial_terms: "revenue"
-financial_figures: "$2.5 billion|15%"
-temporal_indicators: "reported|this quarter|last year"
-has_financial_terms: True
-has_financial_figures: True
-has_temporal_language: True
-```
+### Core Fields
+- `text`: Processed text content
+- `speaker_norm`: Normalized speaker role (CEO, CFO, etc.)
+- `institution`: Financial institution name
+- `quarter`: Reporting quarter (Q1_2025, etc.)
+- `source_file`: Original filename
 
-### **No Analysis Applied**
-- ❌ No classification as "actual" vs "projection"
-- ❌ No topic assignment like "Revenue & Growth"
-- ❌ No sentiment or relevance scoring
+### NLP Features
+- `all_financial_terms`: Extracted financial vocabulary
+- `financial_figures`: Numerical values and metrics
+- `primary_topic`: Main topic classification
+- `data_type`: Actual vs Projection classification
+- `sentiment_score`: Financial sentiment analysis
 
-## 🏗️ **Architecture**
+### Quality Indicators
+- `is_actual_data`: Boolean flag for historical data
+- `is_projection_data`: Boolean flag for forward-looking data
+- `has_financial_content`: Boolean flag for financial relevance
+- `confidence_score`: Processing confidence level
 
-### **Pure ETL Pipeline**
-```
-Documents → Extract Text → Segment Sentences → Extract Raw Features → Export CSV
-```
+## 🏛️ Supported Institutions
 
-### **Downstream Analysis (Separate)**
-```
-Raw CSV → Topic Modeling → Classification → Feature Engineering → ML Models
-```
+Pre-configured support for major financial institutions:
 
-## 🛠️ **Technical Features**
+**US Banks**: JPMorgan Chase, Bank of America, Citigroup, Wells Fargo, Goldman Sachs, Morgan Stanley, U.S. Bancorp, PNC Financial, Truist Financial, Charles Schwab
 
-### **✅ Missing Value Handling**
-- No null values in output
-- Consistent defaults for all fields
-- NLP-ready datasets
+**European Banks**: HSBC, Barclays, Lloyds Banking Group, NatWest Group, Standard Chartered, Deutsche Bank, BNP Paribas, Credit Suisse, UBS, ING Group, Santander, BBVA, UniCredit, Intesa Sanpaolo, Nordea
 
-### **✅ Multi-Format Support**
-- PDF processing with PyPDF2
-- Excel processing with openpyxl
-- Text file processing
-- Graceful error handling
+## 📁 File Format Support
 
-### **✅ Web Interface**
-- Drag-and-drop file upload
-- Multi-institution processing
-- Progress tracking
-- Processing history
-- CSV download
+| Format | Extensions | Description |
+|--------|------------|-------------|
+| PDF | `.pdf` | Earnings calls, financial reports |
+| Excel | `.xlsx`, `.xls` | Spreadsheet data, financial metrics |
+| CSV | `.csv` | Tabular data, time series |
+| Text | `.txt` | Plain text transcripts |
+| JSON | `.json` | Structured data files |
 
-## 📚 **Use Cases**
+## 🔧 Configuration
 
-### **Financial Institutions**
-- Earnings call transcript processing
-- Financial report data extraction
-- Regulatory document structuring
-- Multi-quarter analysis preparation
-
-### **Research & Analytics**
-- Academic financial research
-- Market analysis preparation
-- NLP model training data
-- Time series analysis datasets
-
-### **Compliance & Audit**
-- Document processing audit trails
-- Structured data for compliance
-- Historical document analysis
-- Regulatory reporting preparation
-
-## 🔧 **Development**
-
-### **Project Structure**
-```
-boe-etl/
-├── pure_etl_frontend.py    # Main Streamlit application
-├── README.md               # This file
-├── requirements.txt        # Python dependencies
-├── .gitignore             # Git ignore patterns
-└── LICENSE                # MIT License
+### Environment Variables
+```bash
+export BOE_ETL_CONFIG_PATH=/path/to/config.yaml
+export BOE_ETL_LOG_LEVEL=INFO
+export BOE_ETL_OUTPUT_DIR=/path/to/outputs
 ```
 
-### **Dependencies**
-- **streamlit**: Web interface framework
-- **pandas**: Data manipulation
-- **PyPDF2**: PDF text extraction
-- **openpyxl**: Excel file processing
+### Configuration File
+```yaml
+# config.yaml
+processing:
+  batch_size: 100
+  max_workers: 4
+  timeout: 300
 
-## 📄 **License**
+nlp:
+  include_sentiment: true
+  include_entities: true
+  confidence_threshold: 0.7
 
-MIT License - see [LICENSE](LICENSE) file for details.
+output:
+  format: csv
+  include_metadata: true
+  timestamp_format: "%Y%m%d_%H%M%S"
+```
 
-## 🤝 **Contributing**
+## 🏷️ Naming Convention
 
-This is a pure ETL pipeline focused on data engineering principles. Contributions should maintain the separation between extraction and analysis.
+Output files follow the standardized format:
+```
+{Institution}_{Quarter}_{Year}_PureETL_{User}_{Timestamp}
+```
 
-### **Guidelines**
-- Keep ETL layer free of analytical assumptions
-- Maintain raw data extraction focus
-- Preserve downstream analysis flexibility
-- Follow data engineering best practices
+Example: `JPMorgan_Q1_2025_PureETL_JohnSmith_20250526_143022.csv`
 
-## 🎯 **Philosophy: Extract, Don't Analyze**
+## 🧪 Testing
 
-This pipeline embodies the principle that **ETL should extract and structure data, not make analytical decisions**. Analysis belongs in separate, specialized pipelines that can evolve independently.
+```bash
+# Run all tests
+python -m pytest
 
-**Pure ETL = Maximum Flexibility for Downstream Analysis** 🔧
+# Run with coverage
+python -m pytest --cov=boe_etl
+
+# Run specific test
+python -m pytest tests/test_pipeline.py
+```
+
+## 📚 Documentation
+
+- [API Reference](docs/api.md)
+- [Configuration Guide](docs/configuration.md)
+- [Development Setup](docs/development.md)
+- [Taxonomy Guide](TAXONOMY_GUIDE.md)
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🆘 Support
+
+- **Issues**: [GitHub Issues](https://github.com/daleparr/boe-etl/issues)
+- **Documentation**: [GitHub Wiki](https://github.com/daleparr/boe-etl/wiki)
+- **Email**: etl-team@bankofengland.co.uk
+
+## 🏆 Acknowledgments
+
+- Built for the Bank of England ETL team
+- Powered by pandas, PyMuPDF, and Streamlit
+- Designed for financial document processing workflows
+
+---
+
+**Version**: 1.0.0  
+**Author**: Bank of England ETL Team  
+**Repository**: https://github.com/daleparr/boe-etl
