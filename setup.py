@@ -22,7 +22,7 @@ setup(
     version="1.0.0",
     author="Bank of England ETL Team",
     author_email="etl-team@bankofengland.co.uk",
-    description="A comprehensive ETL pipeline for financial document processing and NLP analysis",
+    description="Pure ETL pipeline for financial document processing - extracts data without analytical assumptions",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/daleparr/boe-etl",
