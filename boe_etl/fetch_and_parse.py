@@ -27,8 +27,20 @@ import pyarrow as pa
 from typing import List, Dict, Optional, Tuple
 import json
 from urllib.parse import urlparse
-from retry import retry
-from dotenv import load_dotenv
+try:
+    from retry import retry
+except ImportError:
+    def retry(*args, **kwargs):
+        """Fallback decorator when retry is not available."""
+        def decorator(func):
+            return func
+        return decorator
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*args, **kwargs):
+        """Fallback function when python-dotenv is not available."""
+        pass
 
 # Load environment variables
 load_dotenv()

@@ -9,8 +9,8 @@ If you encounter import errors, use this working approach:
 ### **Method 1: Direct Module Import (Recommended)**
 
 ```python
-# Install the package
-!pip install boe-etl
+# Install the package and common missing dependencies
+!pip install boe-etl python-dotenv retry pydantic
 
 # Import specific modules directly (avoids complex dependencies)
 import boe_etl.etl_pipeline as etl
@@ -25,7 +25,7 @@ print("✅ BoE ETL modules imported successfully!")
 
 ```python
 # If Method 1 fails, try this approach
-!pip install boe-etl
+!pip install boe-etl python-dotenv retry pydantic
 
 # Import the package and access components
 import boe_etl
@@ -285,7 +285,7 @@ except ImportError as e:
 ### **Issue 2: Missing Dependencies**
 ```python
 # Install missing dependencies
-!pip install PyPDF2 openpyxl pandas streamlit
+!pip install PyPDF2 openpyxl pandas streamlit python-dotenv retry pydantic
 
 # Verify installation
 import PyPDF2
@@ -325,7 +325,7 @@ def debug_file_processing(filename):
 # ==========================================
 
 # 1. Install package
-!pip install boe-etl
+!pip install boe-etl python-dotenv retry pydantic
 
 # 2. Import working modules
 from boe_etl.parsers.pdf_parser import parse_pdf

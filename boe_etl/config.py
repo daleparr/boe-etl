@@ -4,8 +4,31 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 import yaml
-from dotenv import load_dotenv
-from pydantic import BaseModel, Field, validator, ValidationError
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(*args, **kwargs):
+        """Fallback function when python-dotenv is not available."""
+        pass
+try:
+    from pydantic import BaseModel, Field, validator, ValidationError
+except ImportError:
+    # Fallback classes when pydantic is not available
+    class BaseModel:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+    
+    def Field(*args, **kwargs):
+        return None
+    
+    def validator(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+    
+    class ValidationError(Exception):
+        pass
 
 # Set up logging
 LOGGER = logging.getLogger(__name__)
