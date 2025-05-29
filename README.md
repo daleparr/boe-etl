@@ -212,7 +212,13 @@ Example: `JPMorgan_Q1_2025_PureETL_JohnSmith_20250526_143022.csv`
 
 ## 📄 **License**
 
-MIT License - see [LICENSE](LICENSE) file for details.
+BoE ETL Non-Commercial License - see [LICENSE](LICENSE) file for details.
+
+**Key Restrictions:**
+- ❌ No commercial use or sublicensing
+- ❌ Cannot be sold or used for profit
+- ✅ Free for academic, research, and non-commercial use
+- ✅ Contact etl-team@bankofengland.co.uk for commercial licensing
 
 ## 🤝 **Contributing**
 
