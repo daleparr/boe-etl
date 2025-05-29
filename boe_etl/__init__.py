@@ -32,33 +32,58 @@ __author__ = "Bank of England ETL Team"
 __email__ = "etl-team@bankofengland.co.uk"
 
 # Import main classes for easy access
+__all__ = ['__version__', '__author__', '__email__']
+
 try:
-    from .core import ETLPipeline
+    from .etl_pipeline import ETLPipeline
+    __all__.append('ETLPipeline')
+except ImportError:
+    pass
+
+try:
     from .schema_transformer import SchemaTransformer
+    __all__.append('SchemaTransformer')
+except ImportError:
+    pass
+
+try:
     from .parsers.pdf_parser import PDFParser
+    __all__.append('PDFParser')
+except ImportError:
+    pass
+
+try:
     from .parsers.excel_parser import ExcelParser
+    __all__.append('ExcelParser')
+except ImportError:
+    pass
+
+try:
     from .parsers.text_parser import TextParser
+    __all__.append('TextParser')
+except ImportError:
+    pass
+
+try:
     from .parsers.json_parser import JSONParser
+    __all__.append('JSONParser')
+except ImportError:
+    pass
+
+try:
     from .nlp import NLPProcessor
-    
-    __all__ = [
-        'ETLPipeline',
-        'SchemaTransformer', 
-        'PDFParser',
-        'ExcelParser',
-        'TextParser',
-        'JSONParser',
-        'NLPProcessor',
-        '__version__',
-        '__author__',
-        '__email__'
-    ]
-    
-except ImportError as e:
-    # Handle case where some modules might not be available
-    import warnings
-    warnings.warn(f"Some modules could not be imported: {e}")
-    __all__ = ['__version__', '__author__', '__email__']
+    __all__.append('NLPProcessor')
+except ImportError:
+    pass
+
+# Alternative import for core ETLPipeline if direct import fails
+if 'ETLPipeline' not in __all__:
+    try:
+        from .core import ETLPipeline
+        __all__.append('ETLPipeline')
+    except ImportError:
+        import warnings
+        warnings.warn("ETLPipeline could not be imported. Use direct module imports instead.")
 
 # Package metadata
 PACKAGE_INFO = {
