@@ -239,5 +239,5 @@ This pipeline embodies the principle that **ETL should extract and structure dat
 ---
 
 **Version**: 1.0.0  
-**Author**: Bank of England ETL Team  
+**Author**: CAM Bank of England ETL Team  
 **Repository**: https://github.com/daleparr/boe-etl
